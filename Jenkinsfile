@@ -4,6 +4,7 @@ node {
   }
 
   stage("Build project with test execution") {
+    sh 'chmod +x gradlew'
     sh "./gradlew build"
   }
 
