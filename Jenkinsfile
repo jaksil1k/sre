@@ -1,6 +1,6 @@
 node {
   stage("Clone project") {
-    git branch: 'main', url: 'https://github.com//<repo name>.git'
+    git branch: 'main', url: 'https://github.com/jaksil1k/sre'
   }
 
   stage("Build project with test execution") {
