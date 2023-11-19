@@ -1,28 +1,54 @@
 pipeline {
-    agent any
-    triggers {
-        pollSCM '* * * * *'
+
+    parameters {
+        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
     }
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    }
+
+   agent  any
     stages {
-        stage('Build') {
+        stage('checkout') {
             steps {
-                sh 'gradle assemble'
+                 script{
+                        dir("terraform")
+                        {
+                            git "https://github.com/jaksil1k/sre
+                        }
+                    }
+                }
+            }
+
+        stage('Plan') {
+            steps {
+                sh 'pwd;cd terraform/ ; terraform init'
+                sh "pwd;cd terraform/ ; terraform plan -out tfplan"
+                sh 'pwd;cd terraform/ ; terraform show -no-color tfplan > tfplan.txt'
             }
         }
-         stage('Test') {
+        stage('Approval') {
+           when {
+               not {
+                   equals expected: true, actual: params.autoApprove
+               }
+           }
+
+           steps {
+               script {
+                    def plan = readFile 'terraform/tfplan.txt'
+                    input message: "Do you want to apply the plan?",
+                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+               }
+           }
+       }
+
+        stage('Apply') {
             steps {
-                sh 'gradle test'
-            }
-        }
-        stage('Build Docker Image') {
-            steps {
-                sh 'gradle docker'
-            }
-        }
-        stage('Run Docker Image') {
-            steps {
-                sh 'gradle dockerRun'
+                sh "pwd;cd terraform/ ; terraform apply -input=false tfplan"
             }
         }
     }
-}
+
+  }
