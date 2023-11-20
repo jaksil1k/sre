@@ -16,10 +16,4 @@ node {
         '''
     }
   }
-
-  jacoco(
-    execPattern: '**/*.exec',
-    sourcePattern: 'src/main/java',
-    exclusionPattern: 'src/test*'
-  )
 }

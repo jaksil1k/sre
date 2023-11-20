@@ -1,0 +1,6 @@
+version: '3.8'
+services:
+  sre:
+    image: zhaksylyk4768/sre
+    ports:
+      - 8081:8081
